@@ -1,18 +1,21 @@
 import torch
+import torch.nn.modules as nn
 
-class BasicModule(torch.nn.Module):
+
+class BasicModule(nn.Module):
     def __init__(self):
-        super(BasicModule,self).__init__()
+        super(BasicModule, self).__init__()
 
-    def load(self,path):
-        self.load_state_dict(torch.load(path))
+    def load(self, s: str):
+        self.load_state_dict(torch.load(s))
 
-    def save(self,path=None):
-        if path is None:
-            name='result/best_model.pth'
-            torch.save(self.state_dict(),name)
-            return name
-        else:
-            torch.save(self.state_dict(),path)
-            return path
+    def save(self, s: str):
+        torch.save(self.state_dict(), s)
 
+
+class Flatten(nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(x.size(0), -1)

@@ -1,34 +1,28 @@
-import time
-
 import numpy as np
 import torch
-from torchvision import datasets
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
-#return MNIST dataloader
-def mnist_dataloader(batch_size=256,train=True):
+import torch.utils.data as data
+import torchvision.datasets as datasets
 
-    dataloader=DataLoader(
-    datasets.MNIST('./data/mnist',train=train,download=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))
-                   ])),
-    batch_size=batch_size,shuffle=True)
-
+def mnist_loader(batch_size=256,train=True):
+    preprocess=transforms.Compose([
+        transforms.Resize((16,16)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=(0.5,0.5,0.5),std=(0.5,0.5,0.5),inplace=True),
+    ])
+    dataset=datasets.MNIST(root='dataset/mnist',train=train,transform=preprocess,download=False)
+    dataloader=data.DataLoader(dataset=dataset,batch_size=batch_size,shuffle=True,num_workers=3,pin_memory=True,drop_last=False)
     return dataloader
 
 def svhn_dataloader(batch_size=4,train=True):
-    dataloader = DataLoader(
-        datasets.SVHN('./data/SVHN', split=('train' if train else 'test'), download=True,
-                       transform=transforms.Compose([
-                           transforms.Resize((28,28)),
-                           transforms.Grayscale(),
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-                       ])),
-        batch_size=batch_size, shuffle=False)
-
+    preprocess=transforms.Compose([
+        transforms.Resize((16,16)),
+        transforms.Grayscale(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=(0.5,0.5,0.5),std=(0.5,0.5,0.5),inplace=True),
+    ])
+    dataset=datasets.SVHN(root='dataset/SVHN',split=('train' if train else 'test'),transform=preprocess,download=False)
+    dataloader=data.DataLoader(dataset=dataset,batch_size=batch_size,shuffle=True if train else False,num_workers=3,pin_memory=True,drop_last=False)
     return dataloader
 
 
