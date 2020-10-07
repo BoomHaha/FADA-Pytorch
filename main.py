@@ -13,7 +13,7 @@ def step1(args):
     epochs = args.e1
     torch.manual_seed(1)
     torch.cuda.manual_seed_all(1)
-    tfwriter=tensorboard.SummaryWriter(os.path.join(args.s,'record'))
+    tfwriter = tensorboard.SummaryWriter(os.path.join(args.s, 'record'))
     train_loader = dataloader.mnist_loader(batch_size=args.b)
     test_loader = dataloader.mnist_loader(batch_size=args.b, train=False)
     classifier = main_models.Classifier().cuda()
@@ -29,7 +29,7 @@ def step1(args):
             loss = loss_cls(y_pred, labels)
             loss.backward()
             optimizer.step()
-            tfwriter.add_scalar('Training Loss',loss.item(),cur_step+(cur_epoch-1)*len(train_loader))
+            tfwriter.add_scalar('Training Loss', loss.item(), cur_step + (cur_epoch - 1) * len(train_loader))
             if cur_step % 10 == 0:
                 print('Epoch: %d/%d\tStep: %d/%d\tLoss: %.6f' % (cur_epoch, epochs, cur_step, len(train_loader), loss.item()))
         total, correct = 0, 0
@@ -40,20 +40,25 @@ def step1(args):
             total += len(labels)
             correct += (pred == labels).sum().item()
         print('Validation Accuracy: %.6f' % (correct / total))
-    print('Train finished.')
-    encoder.save(os.path.join(args.s,'encoder.ckpt'))
-    classifier.save(os.path.join(args.s,'classifier.ckpt'))
+        tfwriter.add_scalar('Validation Accuracy', correct / total, cur_epoch)
+    print('Train finished')
+    encoder.save(os.path.join(args.s, 'encoder.ckpt'))
+    classifier.save(os.path.join(args.s, 'classifier.ckpt'))
+    print('Model saved')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e1', type=int, default=10, help='train epochs for step 1')
-    parser.add_argument('--n_epoches_2', type=int, default=100)
-    parser.add_argument('--n_epoches_3', type=int, default=100)
-    parser.add_argument('--n_target_samples', type=int, default=7)
+    parser.add_argument('-e1', type=int, default=10, help='train epochs for step 1, default: 10')
+    parser.add_argument('-e2', type=int, default=100, help='train epochs for step 2, default: 100')
+    parser.add_argument('-e3', type=int, default=100, help='train epochs for step 3, default: 100')
+    parser.add_argument('-t', type=int, default=7, help='target samples, default: 7')
     parser.add_argument('-b', type=int, default=64, help='train batch size, default: 64')
     parser.add_argument('-g', type=int, default=0, help='which gpu to use, default: 0')
     parser.add_argument('-lr', type=float, default=1e-3, help='learning rate, default: 1e-3')
-    parser.add_argument('-s',type=str,default='result',help='path to save result and models, default: result')
+    parser.add_argument('-s', type=str, default='result', help='path to save result and models, default: result')
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.g)
+    a1 = input('Train Step 1 ? (Y/N)')
+    if a1 == 'Y':
+        step1(args)
