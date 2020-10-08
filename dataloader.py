@@ -28,7 +28,7 @@ def svhn_dataloader(batch_size=4, train=True):
     return dataloader
 
 
-def sample_mnist():
+def sample_source():
     preprocess = transforms.Compose([
         transforms.Resize((16, 16)),
         transforms.ToTensor(),
@@ -41,8 +41,7 @@ def sample_mnist():
         img = torch.from_numpy(np.array(mnist[i][0]))
         X.append(img.unsqueeze(0))
         Y.append(torch.from_numpy(np.array(mnist[i][1])))
-    X, Y = torch.stack(X, dim=0), torch.stack(Y, dim=0)
-    return X, Y
+    return torch.stack(X, dim=0), torch.stack(Y, dim=0)
 
 
 def sample_target(n: int):
@@ -63,3 +62,10 @@ def sample_target(n: int):
             Y.append(torch.from_numpy(np.array(label)))
             class_num[label] -= 1
     return torch.stack(X, dim=0), torch.stack(Y, dim=0)
+
+
+def sample_groups(Xs, Ys, Xt, Yt):
+    torch.manual_seed(2)
+    torch.cuda.manual_seed_all(2)
+    shot_num = Xt.shape[0] // 10
+
