@@ -69,3 +69,26 @@ def sample_groups(Xs, Ys, Xt, Yt):
     torch.cuda.manual_seed_all(2)
     shot_num = Xt.shape[0] // 10
 
+    def s_idx(c: int):
+        idx = torch.nonzero(Ys.eq(c))
+        return idx[torch.randperm(len(idx))][:shot_num * 2].squeeze()
+
+    t_idx = lambda c: torch.nonzero(Yt.eq(c))[:shot_num].squeeze()
+    shuffled_class = torch.randperm(10)
+    s_matrix = torch.stack(list(map(s_idx, shuffled_class)), dim=0)
+    t_matrix = torch.stack(list(map(t_idx, shuffled_class)), dim=0)
+    G1, G2, G3, G4, Y1, Y2, Y3, Y4 = [], [], [], [], [], [], [], []
+    for i in range(10):
+        for j in range(shot_num):
+            G1.append((Xs[s_matrix[i][j * 2]], Xs[s_matrix[i][j * 2 + 1]]))
+            Y1.append((Ys[s_matrix[i][j * 2]], Ys[s_matrix[i][j * 2 + 1]]))
+            G2.append((Xs[s_matrix[i][j]], Xt[t_matrix[i][j]]))
+            Y2.append((Ys[s_matrix[i][j]], Yt[t_matrix[i][j]]))
+            G3.append((Xs[s_matrix[i][j]], Xs[s_matrix[(i + 1) % 10][j]]))
+            Y3.append((Ys[s_matrix[i][j]], Ys[s_matrix[(i + 1) % 10][j]]))
+            G4.append((Xs[s_matrix[i][j]], Xt[t_matrix[(i + 1) % 10][j]]))
+            Y4.append((Ys[s_matrix[i][j]], Yt[t_matrix[(i + 1) % 10][j]]))
+    group, groupy = [G1, G2, G3, G4], [Y1, Y2, Y3, Y4]
+    for g in group:
+        assert len(g) == Xt.shape[0]
+    return group, groupy
